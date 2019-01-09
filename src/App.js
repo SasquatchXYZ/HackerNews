@@ -10,6 +10,7 @@ class App extends Component {
     };
 
     const welcomeMessage = `Welcome ${user.name} to the Road to Learn React ${user.emotion}`;
+
     return (
       <div className="App">
         <h2>{ welcomeMessage }</h2>
