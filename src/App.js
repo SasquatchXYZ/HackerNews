@@ -20,6 +20,8 @@ const list = [
   }
 ];
 
+const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
+
 class App extends Component {
 
   constructor(props) {
@@ -51,7 +53,7 @@ class App extends Component {
                  onChange={this.onSearchChange}
           />
         </form>
-        {this.state.list.map(item =>
+        {this.state.list.filter(isSearched(this.state.searchTerm)).map(item =>
           <div key={item.objectID}>
               <span>
                 <a href={item.url}>{item.title}</a>
