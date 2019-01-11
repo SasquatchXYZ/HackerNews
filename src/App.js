@@ -61,12 +61,19 @@ class App extends Component {
   }
 
   onDismiss(id) {
-    const updatedList = this.state.list.filter(item => item.objectID !== id);
-    this.setState({list: updatedList})
+
+    /*const isNotId = item => item.objectID !== id;
+    const updatedHits = this.state.result.hits.filter(isNotId());*/
+
+    const updatedHits = this.state.result.hits.filter(item => item.objectID !== id);
+    this.setState({
+      result: { ...this.state.result, hits: updatedHits}
+    })
   }
 
   render() {
     const {searchTerm, result} = this.state;
+    // console.log(this.state.result);
     if (!result) {return null}
     return (
       <div className="page">
