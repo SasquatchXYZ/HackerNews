@@ -67,14 +67,13 @@ class App extends Component {
 
     const updatedHits = this.state.result.hits.filter(item => item.objectID !== id);
     this.setState({
-      result: { ...this.state.result, hits: updatedHits}
+      result: {...this.state.result, hits: updatedHits}
     })
   }
 
   render() {
     const {searchTerm, result} = this.state;
     // console.log(this.state.result);
-    if (!result) {return null}
     return (
       <div className="page">
         <div className="interactions">
@@ -85,11 +84,14 @@ class App extends Component {
             Search:
           </Search>
         </div>
-        <Table
-          list={result.hits}
-          pattern={searchTerm}
-          onDismiss={this.onDismiss}
-        />
+        {result
+          ? <Table
+            list={result.hits}
+            pattern={searchTerm}
+            onDismiss={this.onDismiss}
+          />
+          : null
+        }
       </div>
     );
   }
@@ -121,32 +123,33 @@ const Table = ({list, pattern, onDismiss}) => {
   };
 
   return (
-  <div className="table">
-    {list.filter(isSearched(pattern)).map(item =>
-      <div key={item.objectID} className="table-row">
+    <div className="table">
+      {list.filter(isSearched(pattern)).map(item =>
+        <div key={item.objectID} className="table-row">
         <span style={largeColumn}>
           <a href={item.url}>{item.title}</a>
         </span>
-        <span style={midColumn}>
+          <span style={midColumn}>
           {item.author}
         </span>
-        <span style={smallColumn}>
+          <span style={smallColumn}>
           {item.num_comments}
         </span>
-        <span style={smallColumn}>
+          <span style={smallColumn}>
           {item.points}
         </span>
-        <span style={smallColumn}>
+          <span style={smallColumn}>
           <Button onClick={() => onDismiss(item.objectID)}
                   className="button-inline"
           >
             Dismiss
           </Button>
         </span>
-      </div>
-    )}
-  </div>
-)};
+        </div>
+      )}
+    </div>
+  )
+};
 
 const Button = ({onClick, className = '', children}) => (
   <button
