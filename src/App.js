@@ -157,15 +157,58 @@ class App extends Component {
   }
 }
 
-// Functional Stateless Components -------------------------------------------------------------------------------------
+// App ES6 Class Component (Uses Local State) --------------------------------------------------------------------------
 // Search Component
-const Search = ({value, onChange, onSubmit, children}) => {
+class Search extends Component {
+  componentDidMount() {
+    if (this.input) {
+      this.input.focus();
+    }
+  }
+
+  render() {
+    const {
+      value,
+      onChange,
+      onSubmit,
+      children
+    } = this.props;
+
+    return (
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          ref={el => this.input = el}
+        />
+        <button type="submit">
+          {children}
+        </button>
+      </form>
+    )
+  }
+};
+
+Search.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired
+};
+
+// Functional Stateless Component for Search Component that still has access to the 'ref'
+/*const Search = ({value, onChange, onSubmit, children}) => {
+
+  let input;
+
   return (
     <form onSubmit={onSubmit}>
       <input
         type="text"
         value={value}
         onChange={onChange}
+        ref={el => this.input = el}
       />
       <button type="submit">
         {children}
@@ -179,8 +222,9 @@ Search.propTypes = {
   onChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired
-};
+};*/
 
+// Functional Stateless Components -------------------------------------------------------------------------------------
 // Table Component
 const Table = ({list, onDismiss}) => {
   const largeColumn = {
