@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import {sortBy} from 'lodash';
+import classNames from 'classnames';
 import './App.css';
 
 const DEFAULT_QUERY = 'react';
@@ -11,6 +13,14 @@ const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
+
+const SORTS = {
+  NONE: list => list,
+  TITLE: list => sortBy(list, 'title'),
+  AUTHOR: list => sortBy(list, 'author'),
+  COMMENTS: list => sortBy(list, 'num_comments').reverse(),
+  POINTS: list => sortBy(list, 'points').reverse()
+};
 
 
 // App ES6 Class Component (Uses Local State) --------------------------------------------------------------------------
@@ -25,7 +35,9 @@ class App extends Component {
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
       error: null,
-      isLoading: false
+      isLoading: false,
+      sortKey: 'NONE',
+      isSortReverse: false
     };
 
     // Bindings
@@ -34,7 +46,8 @@ class App extends Component {
     this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
-    this.onDismiss = this.onDismiss.bind(this)
+    this.onDismiss = this.onDismiss.bind(this);
+    this.onSort = this.onSort.bind(this);
   }
 
   needsToSearchTopStories(searchTerm) {
@@ -100,6 +113,11 @@ class App extends Component {
     })
   }
 
+  onSort(sortKey) {
+    const isSortReverse = this.state.sortKey === sortKey && !this.state.isSortReverse;
+    this.setState({sortKey, isSortReverse})
+  }
+
   // Lifecycle Method
   componentDidMount() {
     this._isMounted = true;
@@ -115,7 +133,7 @@ class App extends Component {
 
   // Lifecycle Method
   render() {
-    const {searchTerm, results, searchKey, error, isLoading} = this.state;
+    const {searchTerm, results, searchKey, error, isLoading, sortKey, isSortReverse} = this.state;
     // console.log(error);
 
     const page = (
@@ -147,6 +165,9 @@ class App extends Component {
             <p>{error.toString()}</p>
           </div>
           : <Table list={list}
+                   sortKey={sortKey}
+                   isSortReverse={isSortReverse}
+                   onSort={this.onSort}
                    onDismiss={this.onDismiss}
           />
         }
@@ -194,7 +215,7 @@ class Search extends Component {
       </form>
     )
   }
-};
+}
 
 Search.propTypes = {
   value: PropTypes.string,
@@ -232,36 +253,71 @@ Search.propTypes = {
 
 // Functional Stateless Components -------------------------------------------------------------------------------------
 // Table Component
-const Table = ({list, onDismiss}) => {
-  const largeColumn = {
-    width: '40%'
-  };
+const Table = ({list, sortKey, isSortReverse, onSort, onDismiss}) => {
 
-  const midColumn = {
-    width: '30%'
-  };
-
-  const smallColumn = {
-    width: '10%'
-  };
+  const sortedList = SORTS[sortKey](list);
+  const reverseSortedList = isSortReverse
+    ? sortedList.reverse()
+    : sortedList;
 
   return (
     <div className="table">
-      {list.map(item =>
+      <div className="table-header">
+        <span style={{width: '40%'}}>
+          <Sort
+            sortKey={'TITLE'}
+            onSort={onSort}
+            activeSortKey={sortKey}
+          >
+            Title
+          </Sort>
+        </span>
+        <span style={{width: '30%'}}>
+          <Sort
+            sortKey={'AUTHOR'}
+            onSort={onSort}
+            activeSortKey={sortKey}
+          >
+            Author
+          </Sort>
+        </span>
+        <span style={{width: '10%'}}>
+          <Sort
+            sortKey={'COMMENTS'}
+            onSort={onSort}
+            activeSortKey={sortKey}
+          >
+            Comments
+          </Sort>
+        </span>
+        <span style={{width: '10%'}}>
+          <Sort
+            sortKey={'POINTS'}
+            onSort={onSort}
+            activeSortKey={sortKey}
+          >
+            Points
+          </Sort>
+        </span>
+        <span style={{width: '10%'}}>
+            Archive
+        </span>
+      </div>
+      {reverseSortedList.map(item =>
         <div key={item.objectID} className="table-row">
-        <span style={largeColumn}>
+        <span style={{width: '40%'}}>
           <a href={item.url}>{item.title}</a>
         </span>
-          <span style={midColumn}>
+          <span style={{width: '30%'}}>
           {item.author}
         </span>
-          <span style={smallColumn}>
+          <span style={{width: '10%'}}>
           {item.num_comments}
         </span>
-          <span style={smallColumn}>
+          <span style={{width: '10%'}}>
           {item.points}
         </span>
-          <span style={smallColumn}>
+          <span style={{width: '10%'}}>
           <Button onClick={() => onDismiss(item.objectID)}
                   className="button-inline"
           >
@@ -308,17 +364,39 @@ Button.propTypes = {
   children: PropTypes.node.isRequired
 };
 
-// Loading Component
-const Loading = () =>
-  <div>Loading...</div>;
+// Loading Component ---------------------------------------------------------------------------------------------------
+const Loading = () => (
+  <div>Loading...</div>
+);
 
-const withLoading = (Component) => ({isLoading, ...rest}) =>
+// Higher Order Component for ButtonWith Loading -----------------------------------------------------------------------
+const withLoading = (Component) => ({isLoading, ...rest}) => (
   isLoading
     ? <Loading/>
-    : <Component {...rest}/>;
+    : <Component {...rest}/>
+);
 
 const ButtonWithLoading = withLoading(Button);
 
+// Sort Component ------------------------------------------------------------------------------------------------------
+const Sort = ({sortKey, activeSortKey, onSort, children}) => {
+  const sortClass = classNames(
+    'button-inline',
+    {'button-active': sortKey === activeSortKey}
+  );
+
+  return (
+    <Button
+      onClick={() => onSort(sortKey)}
+      className={sortClass}
+    >
+      {children}
+    </Button>
+  )
+};
+
+
+// ---------------------------------------------------------------------------------------------------------------------
 export default App;
 
 export {
