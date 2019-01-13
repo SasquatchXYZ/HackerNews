@@ -24,7 +24,8 @@ class App extends Component {
       results: null,
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
-      error: null
+      error: null,
+      isLoading: false
     };
 
     // Bindings
@@ -55,11 +56,13 @@ class App extends Component {
       results: {
         ...results,
         [searchKey]: {hits: updatedHits, page}
-      }
+      },
+      isLoading: false
     })
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
+    this.setState({isLoading: true});
 
     axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(result => this._isMounted && this.setSearchTopStories(result.data))
@@ -112,7 +115,7 @@ class App extends Component {
 
   // Lifecycle Method
   render() {
-    const {searchTerm, results, searchKey, error} = this.state;
+    const {searchTerm, results, searchKey, error, isLoading} = this.state;
     // console.log(error);
 
     const page = (
@@ -148,9 +151,12 @@ class App extends Component {
           />
         }
         <div className="interactions">
-          <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-            More
-          </Button>
+          {isLoading
+            ? <Loading/>
+            : <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+              More
+            </Button>
+          }
         </div>
       </div>
     );
@@ -301,6 +307,11 @@ Button.propTypes = {
   className: PropTypes.string,
   children: PropTypes.node.isRequired
 };
+
+// Loading Component
+const Loading = () =>
+  <div><i className="fas fa-spinner"/></div>;
+
 
 export default App;
 
